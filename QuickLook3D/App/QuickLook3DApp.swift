@@ -22,7 +22,7 @@ struct ContentView: View {
             Text("3D Quick Look")
                 .font(.title.bold())
 
-            Text("このアプリを一度起動すると、\n.vrm / .vrma / .glb / .fbx を Finder で選択してスペースキーを押すだけで\n3D プレビューできるようになります。")
+            Text("Launch this app once, then select a\n.vrm / .vrma / .glb / .fbx in Finder and press Space\nto preview it in 3D.")
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

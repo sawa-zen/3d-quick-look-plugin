@@ -54,7 +54,7 @@ final class PreviewViewController: NSViewController, QLPreviewingController {
             handler(NSError(
                 domain: "QuickLook3D",
                 code: -1,
-                userInfo: [NSLocalizedDescriptionKey: "VRM ファイルを読み込めませんでした"]
+                userInfo: [NSLocalizedDescriptionKey: "Could not read the file."]
             ))
             return
         }
@@ -71,7 +71,7 @@ final class PreviewViewController: NSViewController, QLPreviewingController {
             handler(NSError(
                 domain: "QuickLook3D",
                 code: -2,
-                userInfo: [NSLocalizedDescriptionKey: "renderer/index.html が見つかりません"]
+                userInfo: [NSLocalizedDescriptionKey: "renderer/index.html not found."]
             ))
             return
         }

@@ -245,7 +245,7 @@ async function loadModelFromArrayBuffer(buffer: ArrayBuffer) {
     );
   } catch (e) {
     console.error('[model] load failed', e);
-    showOverlay('読み込みに失敗しました', true);
+    showOverlay('Failed to load', true);
   }
 }
 
@@ -279,9 +279,9 @@ console.log('renderer booted, WebGL context =', !!renderer.getContext());
     fetch(url)
       .then((r) => r.arrayBuffer())
       .then((buf) => loadModelFromArrayBuffer(buf))
-      .catch(() => showOverlay('読み込みに失敗しました', true));
+      .catch(() => showOverlay('Failed to load', true));
   } else if (location.protocol.startsWith('http')) {
-    showOverlay('.vrm / .vrma / .glb / .fbx をドラッグ&ドロップ');
+    showOverlay('Drag & drop a .vrm / .vrma / .glb / .fbx');
   }
 
   window.addEventListener('dragover', (e) => e.preventDefault());
