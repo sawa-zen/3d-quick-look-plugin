@@ -31,11 +31,22 @@ rm -f "$DMG"
 hdiutil create -volname "3D Quick Look" -srcfolder "$APP" -ov -format UDZO "$DMG"
 
 echo "==> 公証を申請（完了まで待機）"
-xcrun notarytool submit "$DMG" \
+SUBMIT_OUT=$(xcrun notarytool submit "$DMG" \
   --apple-id "$NOTARY_APPLE_ID" \
   --team-id "$APPLE_TEAM_ID" \
   --password "$NOTARY_PASSWORD" \
-  --wait
+  --wait 2>&1)
+echo "$SUBMIT_OUT"
+SUB_ID=$(printf '%s\n' "$SUBMIT_OUT" | awk '/id:/{print $2; exit}')
+
+if ! printf '%s\n' "$SUBMIT_OUT" | grep -q "status: Accepted"; then
+  echo "==> 公証が通らなかった。詳細ログ（拒否理由）を取得:"
+  xcrun notarytool log "$SUB_ID" \
+    --apple-id "$NOTARY_APPLE_ID" \
+    --team-id "$APPLE_TEAM_ID" \
+    --password "$NOTARY_PASSWORD" || true
+  exit 1
+fi
 
 echo "==> staple して検証"
 xcrun stapler staple "$DMG"
