@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# VRM Quick Look プラグインを一括ビルド・インストールするスクリプト。
+# 3D Quick Look プラグインを一括ビルド・インストールするスクリプト。
 #   前提: フル Xcode / xcodegen / node がインストール済み
 #   使い方: ./scripts/build.sh
 set -euo pipefail
@@ -23,7 +23,7 @@ echo "==> 1/5 renderer をビルド"
 ( cd renderer && [ -d node_modules ] || npm install; npm run build )
 
 echo "==> 2/5 renderer を拡張機能の Resources にコピー"
-DEST="VRMQuickLook/Extension/Resources/renderer"
+DEST="QuickLook3D/Extension/Resources/renderer"
 mkdir -p "$DEST"
 rm -rf "${DEST:?}"/*
 cp -R renderer/dist/* "$DEST/"
@@ -35,16 +35,18 @@ if ! command -v xcodegen >/dev/null 2>&1; then
 fi
 xcodegen generate
 
-echo "==> 4/5 アプリをビルド"
+echo "==> 4/5 アプリをビルド（ad-hoc 署名）"
+# ※ 署名なし（CODE_SIGNING_ALLOWED=NO）だと拡張機能が pluginkit に登録されない。
+#   ローカル利用は ad-hoc 署名("-")で十分。配布時は DEVELOPMENT_TEAM 等を設定する。
 xcodebuild \
-  -project VRMQuickLook.xcodeproj \
-  -scheme VRMQuickLook \
+  -project QuickLook3D.xcodeproj \
+  -scheme QuickLook3D \
   -configuration Release \
   -derivedDataPath build \
-  CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
+  CODE_SIGN_IDENTITY="-" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="" \
   build
 
-APP="build/Build/Products/Release/VRMQuickLook.app"
+APP="build/Build/Products/Release/QuickLook3D.app"
 echo "==> 5/5 ビルド完了: $APP"
 echo
 echo "次の手順でインストール・確認:"
@@ -52,4 +54,4 @@ echo "  1) 生成された $APP を /Applications にコピーして一度起動
 echo "     (Quick Look 拡張機能が macOS に登録される)"
 echo "  2) 拡張機能を有効化:  システム設定 > 一般 > ログイン項目と機能拡張 > Quick Look"
 echo "  3) Quick Look を再読み込み:  qlmanage -r && qlmanage -r cache"
-echo "  4) 動作確認:  qlmanage -p /path/to/avatar.vrm"
+echo "  4) 動作確認:  qlmanage -p /path/to/model.vrm  (.vrma / .glb / .fbx も可)"

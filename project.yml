@@ -1,6 +1,6 @@
-name: VRMQuickLook
+name: QuickLook3D
 options:
-  bundleIdPrefix: com.vrm
+  bundleIdPrefix: com.sawazen
   deploymentTarget:
     macOS: "12.0"
   createIntermediateGroups: true
@@ -19,15 +19,16 @@ targets:
   # ---------------------------------------------------------------------
   # ホストアプリ（拡張機能を同梱して配布するための器）
   # ---------------------------------------------------------------------
-  VRMQuickLook:
+  QuickLook3D:
     type: application
     platform: macOS
     sources:
-      - VRMQuickLook/App
+      - QuickLook3D/App
     info:
-      path: VRMQuickLook/App/Info.plist
+      path: QuickLook3D/App/Info.plist
       # ※ Info.plist は XcodeGen が下記 properties から生成する（手書き不可）
       properties:
+        CFBundleDisplayName: 3D Quick Look
         NSPrincipalClass: NSApplication
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
         # .vrm / .vrma / .fbx を OS に認識させる UTI 宣言（ホストアプリ側にも置く）
@@ -57,43 +58,43 @@ targets:
                 - fbx
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.vrm.VRMQuickLook
-        CODE_SIGN_ENTITLEMENTS: VRMQuickLook/App/VRMQuickLook.entitlements
+        PRODUCT_BUNDLE_IDENTIFIER: com.sawazen.QuickLook3D
+        CODE_SIGN_ENTITLEMENTS: QuickLook3D/App/QuickLook3D.entitlements
         ENABLE_HARDENED_RUNTIME: YES
     dependencies:
-      - target: VRMQuickLookExtension
+      - target: QuickLook3DExtension
         embed: true
 
   # ---------------------------------------------------------------------
   # Quick Look プレビュー拡張機能（本体）
   # ---------------------------------------------------------------------
-  VRMQuickLookExtension:
+  QuickLook3DExtension:
     type: app-extension
     platform: macOS
     sources:
-      - path: VRMQuickLook/Extension
+      - path: QuickLook3D/Extension
         excludes:
           - Resources
           - Info.plist
       # Vite でビルドしたフロントを「フォルダ参照（青フォルダ）」として同梱する。
       # こうすることでバンドル内に Resources/renderer/index.html がそのまま残り、
       # Bundle.main.url(... subdirectory: "renderer") で参照できる。
-      - path: VRMQuickLook/Extension/Resources/renderer
+      - path: QuickLook3D/Extension/Resources/renderer
         type: folder
     info:
-      path: VRMQuickLook/Extension/Info.plist
+      path: QuickLook3D/Extension/Info.plist
       # ※ Info.plist は XcodeGen が下記 properties から生成する（手書き不可）
       properties:
-        CFBundleDisplayName: VRM Quick Look
+        CFBundleDisplayName: 3D Quick Look
         # Quick Look Extension としての宣言
         NSExtension:
           NSExtensionPointIdentifier: com.apple.quicklook.preview
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).PreviewViewController
           NSExtensionAttributes:
             # このプラグインがプレビューできる UTI
-            #   com.vrm.vrm        … 下で宣言する VRM 用の独自 UTI
-            #   org.khronos.glb    … macOS 標準の GLB 用 UTI（宣言不要）
-            #   com.autodesk.*.fbx … FBX 用 UTI（環境差を吸収するため両方を登録）
+            #   com.vrm.vrm / .vrma … 下で宣言する独自 UTI
+            #   org.khronos.glb         … macOS 標準の GLB 用 UTI（宣言不要）
+            #   com.autodesk.*.fbx      … FBX 用 UTI（環境差を吸収するため両方を登録）
             QLSupportedContentTypes:
               - com.vrm.vrm
               - com.vrm.vrma
@@ -101,7 +102,7 @@ targets:
               - com.autodesk.mac.fbx
               - com.autodesk.fbx
             QLSupportsSearchableItems: false
-        # .vrm / .fbx 拡張子と UTI を OS に教える
+        # .vrm / .vrma / .fbx 拡張子と UTI を OS に教える
         # （.glb は macOS 標準の org.khronos.glb があるので宣言不要）
         UTImportedTypeDeclarations:
           - UTTypeIdentifier: com.vrm.vrm
@@ -128,8 +129,8 @@ targets:
                 - fbx
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.vrm.VRMQuickLook.Extension
-        CODE_SIGN_ENTITLEMENTS: VRMQuickLook/Extension/VRMQuickLookExtension.entitlements
+        PRODUCT_BUNDLE_IDENTIFIER: com.sawazen.QuickLook3D.Extension
+        CODE_SIGN_ENTITLEMENTS: QuickLook3D/Extension/QuickLook3DExtension.entitlements
         ENABLE_HARDENED_RUNTIME: YES
     # ビルドのたびに renderer を作り直して Resources/renderer にコピーする。
     preBuildScripts:
@@ -143,7 +144,7 @@ targets:
           fi
           [ -d node_modules ] || npm install
           npm run build
-          DEST="$SRCROOT/VRMQuickLook/Extension/Resources/renderer"
+          DEST="$SRCROOT/QuickLook3D/Extension/Resources/renderer"
           mkdir -p "$DEST"
           rm -rf "$DEST"/*
           cp -R dist/* "$DEST/"

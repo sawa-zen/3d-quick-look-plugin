@@ -5,8 +5,8 @@ import WebKit
 
 /// QL 拡張は console が見えず動作確認が難しいので、ライフサイクルと JS の console を
 /// os_log に流す。確認方法:
-///   log stream --predicate 'subsystem == "com.vrm.VRMQuickLook"'
-private let qlLog = Logger(subsystem: "com.vrm.VRMQuickLook", category: "preview")
+///   log stream --predicate 'subsystem == "com.sawazen.QuickLook3D"'
+private let qlLog = Logger(subsystem: "com.sawazen.QuickLook3D", category: "preview")
 
 private func debugLog(_ message: String) {
     qlLog.log("\(message, privacy: .public)")
@@ -30,7 +30,7 @@ final class PreviewViewController: NSViewController, QLPreviewingController {
         config.suppressesIncrementalRendering = false
 
         // JS の console を os_log に転送する受け口（デバッグ用）。
-        // `log stream --predicate 'subsystem == "com.vrm.VRMQuickLook"'` で確認できる。
+        // `log stream --predicate 'subsystem == "com.sawazen.QuickLook3D"'` で確認できる。
         config.userContentController.add(self, name: "log")
 
         webView = WKWebView(frame: .zero, configuration: config)
@@ -52,7 +52,7 @@ final class PreviewViewController: NSViewController, QLPreviewingController {
 
         guard let data = try? Data(contentsOf: url) else {
             handler(NSError(
-                domain: "VRMQuickLook",
+                domain: "QuickLook3D",
                 code: -1,
                 userInfo: [NSLocalizedDescriptionKey: "VRM ファイルを読み込めませんでした"]
             ))
@@ -69,7 +69,7 @@ final class PreviewViewController: NSViewController, QLPreviewingController {
             subdirectory: "renderer"
         ) else {
             handler(NSError(
-                domain: "VRMQuickLook",
+                domain: "QuickLook3D",
                 code: -2,
                 userInfo: [NSLocalizedDescriptionKey: "renderer/index.html が見つかりません"]
             ))

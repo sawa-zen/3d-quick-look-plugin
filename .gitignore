@@ -3,14 +3,14 @@ renderer/node_modules/
 renderer/dist/
 
 # 拡張機能に同梱する生成物（renderer/dist からコピーされる）
-VRMQuickLook/Extension/Resources/renderer/
+QuickLook3D/Extension/Resources/renderer/
 
 # Info.plist は project.yml の info.properties から XcodeGen が生成する
-VRMQuickLook/App/Info.plist
-VRMQuickLook/Extension/Info.plist
+QuickLook3D/App/Info.plist
+QuickLook3D/Extension/Info.plist
 
 # --- Xcode ---
-VRMQuickLook.xcodeproj/
+QuickLook3D.xcodeproj/
 build/
 DerivedData/
 *.xcuserstate

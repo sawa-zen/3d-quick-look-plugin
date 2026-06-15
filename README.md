@@ -1,4 +1,4 @@
-# VRM Quick Look Plugin
+# 3D Quick Look Plugin
 
 macOS の Quick Look で `.vrm` / `.vrma` / `.glb` / `.fbx` ファイルを 3D プレビューするプラグイン。
 **WKWebView + Three.js + [@pixiv/three-vrm](https://github.com/pixiv/three-vrm)** で描画する。
@@ -49,15 +49,15 @@ Finder (スペースキー)
 │   ├── src/main.ts                # レンダラー本体
 │   ├── index.html
 │   └── vite.config.ts             # singlefile 設定
-├── VRMQuickLook/
+├── QuickLook3D/
 │   ├── App/                       # ホストアプリ（最小限）
-│   │   ├── VRMQuickLookApp.swift
+│   │   ├── QuickLook3DApp.swift
 │   │   ├── Info.plist
-│   │   └── VRMQuickLook.entitlements
+│   │   └── QuickLook3D.entitlements
 │   └── Extension/                 # Quick Look 拡張機能（本体）
 │       ├── PreviewViewController.swift
 │       ├── Info.plist             # UTI / 拡張子の登録
-│       ├── VRMQuickLookExtension.entitlements
+│       ├── QuickLook3DExtension.entitlements
 │       └── Resources/renderer/    # ← renderer/dist がコピーされる（生成物）
 ├── project.yml                    # XcodeGen 設定（.xcodeproj を生成）
 └── scripts/build.sh               # 一括ビルド・インストール手順
@@ -87,7 +87,7 @@ Finder (スペースキー)
 
 完了後の手順:
 
-1. 生成された `build/Build/Products/Release/VRMQuickLook.app` を `/Applications` に置く
+1. 生成された `build/Build/Products/Release/QuickLook3D.app` を `/Applications` に置く
 2. **一度アプリを起動する**（これで拡張機能が macOS に登録される）
 3. システム設定 > 一般 > ログイン項目と機能拡張 > **機能拡張 > Quick Look** で有効化
 4. Quick Look を再読み込み:
@@ -114,20 +114,20 @@ npm install
 npm run dev
 ```
 
-開いたページに **`.vrm` ファイルをドラッグ&ドロップ**すると表示される。
-`?url=...` クエリでリモートの VRM を直接読み込むことも可能。
+開いたページに **`.vrm` / `.vrma` / `.glb` / `.fbx` をドラッグ&ドロップ**すると表示される。
+`?url=...` クエリでリモートのモデルを直接読み込むことも可能。
 
 ### ネイティブを Xcode で開いて開発する
 
 ```bash
 ./scripts/build.sh        # 初回: renderer ビルド → Resources へコピー → .xcodeproj 生成
-open VRMQuickLook.xcodeproj
+open QuickLook3D.xcodeproj
 ```
 
-> `xcodegen generate` 時点で `VRMQuickLook/Extension/Resources/renderer/` が
+> `xcodegen generate` 時点で `QuickLook3D/Extension/Resources/renderer/` が
 > 存在している必要がある（フォルダ参照のため）。`build.sh` がコピーまで済ませる。
 
-Xcode で `VRMQuickLook` スキームを Run すると、ビルド時に renderer が自動で
+Xcode で `QuickLook3D` スキームを Run すると、ビルド時に renderer が自動で
 作り直されて拡張機能に同梱される（`project.yml` の preBuildScript）。
 
 ---
@@ -137,18 +137,18 @@ Xcode で `VRMQuickLook` スキームを Run すると、ビルド時に rendere
 - **プレビューが真っ白 / 何も出ない**
   - まずログを見る（拡張機能の console は os_log に転送している）:
     ```bash
-    log stream --predicate 'subsystem == "com.vrm.VRMQuickLook"'
+    log stream --predicate 'subsystem == "com.sawazen.QuickLook3D"'
     ```
     別ターミナルで `qlmanage -p /path/to/x.vrm` を実行。
     `prepare` → `didFinish` → `VRM/glTF loaded & added to scene` まで出れば描画成功。
   - `didFinish` が出ず WebContent が crash する場合は、拡張機能の entitlements に
     `com.apple.security.network.client` があるか確認（WKWebView の必須権限）。
   - renderer が同梱されているか確認:
-    `build/.../VRMQuickLookExtension.appex/Contents/Resources/renderer/index.html`
+    `build/.../QuickLook3DExtension.appex/Contents/Resources/renderer/index.html`
 - **拡張機能が一覧に出ない**
   - アプリを一度起動したか / `/Applications` に置いたか確認
   - `qlmanage -r && qlmanage -r cache` でキャッシュをクリア
-  - `pluginkit -m | grep -i vrm` で登録状況を確認
+  - `pluginkit -m | grep -i quicklook3d` で登録状況を確認
 - **モデルが横倒し・裏向き**
   - VRM 0.x の座標系。`VRMUtils.rotateVRM0()` を呼んでいる（対応済み）
 
@@ -172,9 +172,9 @@ Xcode で `VRMQuickLook` スキームを Run すると、ビルド時に rendere
 
 ## 手動セットアップ（XcodeGen を使わない場合）
 
-1. Xcode で **macOS App** を新規作成（Product Name: `VRMQuickLook`）
+1. Xcode で **macOS App** を新規作成（Product Name: `QuickLook3D`）
 2. **File > New > Target** から **Quick Look Preview Extension** を追加
-3. 本リポジトリの `VRMQuickLook/Extension/PreviewViewController.swift` と
+3. 本リポジトリの `QuickLook3D/Extension/PreviewViewController.swift` と
    `Info.plist`（`QLSupportedContentTypes` / `UTImportedTypeDeclarations`）の内容を反映
 4. `renderer/dist` を拡張機能ターゲットに **フォルダ参照（青フォルダ）** で `renderer` という名前で追加
    （グループ参照だとサブディレクトリが失われて `subdirectory: "renderer"` で見つからなくなる）
