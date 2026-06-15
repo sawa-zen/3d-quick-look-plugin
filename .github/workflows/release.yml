@@ -22,9 +22,15 @@ permissions:
 
 jobs:
   release:
-    runs-on: macos-14
+    # XcodeGen が生成する .xcodeproj は新しい形式（Xcode 16）なので、
+    # 新しい Xcode を持つランナー + latest-stable の Xcode を選ぶ。
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
 
       - uses: actions/setup-node@v4
         with:
