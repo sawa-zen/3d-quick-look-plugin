@@ -42,8 +42,10 @@ SIGN_ID="${SIGN_IDENTITY:--}"
 TEAM="${DEVELOPMENT_TEAM:-}"
 SIGN_ARGS=(CODE_SIGN_IDENTITY="$SIGN_ID" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="$TEAM")
 if [ "$SIGN_ID" != "-" ]; then
-  # 公証には secure timestamp が必須（Hardened Runtime は project.yml で有効）
-  SIGN_ARGS+=(OTHER_CODE_SIGN_FLAGS="--timestamp")
+  # 公証には secure timestamp が必須（Hardened Runtime は project.yml で有効）。
+  # また xcodebuild build は get-task-allow を自動注入し公証で弾かれるため、
+  # CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO で注入を止める（配布用の肝）。
+  SIGN_ARGS+=(OTHER_CODE_SIGN_FLAGS="--timestamp" CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO)
   echo "==> 4/5 アプリをビルド（署名: ${SIGN_ID} / team: ${TEAM}）"
 else
   echo "==> 4/5 アプリをビルド（ad-hoc 署名）"
