@@ -1,62 +1,65 @@
 # 3D Quick Look Plugin
 
-macOS の Quick Look で **`.vrm` / `.vrma` / `.glb` / `.fbx`** を 3D プレビューするプラグイン。
+**English** | [日本語](./README.ja.md)
 
-Finder でファイルを選んでスペースキーを押すと、モデルをぐりぐり回して確認できる。
-アニメーションが含まれていれば自動再生する。
+A macOS Quick Look plugin that previews **`.vrm` / `.vrma` / `.glb` / `.fbx`** files in 3D.
 
----
-
-## インストール
-
-1. [Releases](https://github.com/sawa-zen/3d-quick-look-plugin/releases/latest) から
-   `QuickLook3D.dmg` をダウンロードして開く
-2. **QuickLook3D.app** を「アプリケーション」フォルダにドラッグ
-3. **一度アプリを起動する**（これで Quick Look 拡張機能が macOS に登録される。
-   ウィンドウは閉じてよい）
-4. **システム設定 → 一般 → ログイン項目と機能拡張 → 機能拡張（Quick Look）** を開き、
-   **3D Quick Look** をオンにする
-
-> 配布物は Apple の公証（Notarization）済みなので、Gatekeeper の警告は出ません。
+Select a file in Finder and press Space to spin the model around. Animations play
+automatically.
 
 ---
 
-## 使い方
+## Install
 
-Finder で対応ファイルを選んで **スペースキー**（または右クリック → クイックルック）。
+1. Download `QuickLook3D.dmg` from the
+   [latest release](https://github.com/sawa-zen/3d-quick-look-plugin/releases/latest) and open it
+2. Drag **QuickLook3D.app** into your Applications folder
+3. **Launch the app once** — this registers the Quick Look extension with macOS
+   (you can close the window afterwards)
+4. Open **System Settings → General → Login Items & Extensions → Extensions (Quick Look)**
+   and turn on **3D Quick Look**
 
-| 形式 | 内容 |
+> The released build is notarized by Apple, so Gatekeeper won't warn you.
+
+---
+
+## Usage
+
+Select a supported file in Finder and press **Space** (or right-click → Quick Look).
+
+| Format | Notes |
 |---|---|
-| `.vrm` | VRM アバター（0.x / 1.0 両対応） |
-| `.vrma` | VRM アニメーション。メッシュが無いのでボーンをスケルトン表示して再生 |
-| `.glb` | glTF バイナリ。アニメーションがあれば自動再生 |
-| `.fbx` | FBX モデル。アニメーションがあれば自動再生 |
+| `.vrm` | VRM avatar (0.x / 1.0) |
+| `.vrma` | VRM animation. No mesh, so the skeleton is shown and the animation plays |
+| `.glb` | glTF binary. Plays embedded animation if present |
+| `.fbx` | FBX model. Plays embedded animation if present |
 
-- マウスドラッグで回転、スクロールでズーム
-- スキン（メッシュ）を持たない `.fbx` や `.vrma` は、骨格（スケルトン）として表示される
+- Drag to rotate, scroll to zoom
+- Files with no mesh/skin (a skin-less `.fbx`, or `.vrma`) are shown as a skeleton
 
 ---
 
-## うまく表示されないとき
+## Troubleshooting
 
-- インストール手順 3〜4（**一度起動** と **機能拡張をオン**）が済んでいるか確認
-- それでもダメなら Quick Look のキャッシュを更新:
+- Make sure install steps 3–4 (**launch once** and **enable the extension**) are done
+- Otherwise refresh the Quick Look cache:
   ```bash
   qlmanage -r && qlmanage -r cache
   ```
-- `.gltf`（分割型 = `.bin` やテクスチャが別ファイル）は非対応。単一ファイルの `.glb` を使う
+- `.gltf` (the multi-file form with external `.bin` / textures) is not supported.
+  Use a single-file `.glb` instead.
 
 ---
 
-## ライセンス
+## License
 
-本体コードは [MIT License](./LICENSE)。同梱するサードパーティ（three.js / @pixiv/three-vrm /
-fflate）も MIT で、詳細は [THIRD_PARTY_LICENSES.md](./THIRD_PARTY_LICENSES.md)。
-アバター等のモデルデータは同梱していない。
+The project code is [MIT](./LICENSE). The bundled third parties (three.js /
+@pixiv/three-vrm / fflate) are also MIT — see
+[THIRD_PARTY_LICENSES.md](./THIRD_PARTY_LICENSES.md). No avatar or model data is bundled.
 
 ---
 
-## 開発者向け
+## For developers
 
-ビルド方法・アーキテクチャ・配布（署名/公証）手順は
-**[docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md)** を参照。
+Build instructions, architecture, and distribution (signing / notarization) are in
+**[docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md)**.

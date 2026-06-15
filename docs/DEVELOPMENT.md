@@ -1,109 +1,113 @@
-# 開発者向けドキュメント
+# Development
 
-3D Quick Look Plugin のアーキテクチャ・ビルド・配布手順。利用者向けの概要は
-[../README.md](../README.md) を参照。
+**English** | [日本語](./DEVELOPMENT.ja.md)
 
-技術スタック: **Swift（Quick Look App Extension）+ WKWebView + Three.js +
-[@pixiv/three-vrm](https://github.com/pixiv/three-vrm)**。
+Architecture, build, and distribution notes for 3D Quick Look Plugin. For the user-facing
+overview see [../README.md](../README.md).
+
+Stack: **Swift (Quick Look App Extension) + WKWebView + Three.js +
+[@pixiv/three-vrm](https://github.com/pixiv/three-vrm)**.
 
 ---
 
-## 仕組み
+## How it works
 
 ```
-Finder (スペースキー)
+Finder (Space key)
    └─ Quick Look Extension (Swift / app-extension)
-        ├─ ファイルを読み込み → Base64 化
-        └─ WKWebView に renderer/index.html を表示
-             └─ postMessage で Base64 を渡す
-                  └─ Three.js が WebGL で描画
+        ├─ reads the file → Base64
+        └─ loads renderer/index.html into a WKWebView
+             └─ passes the Base64 via postMessage
+                  └─ Three.js renders it with WebGL
 ```
 
-- フロント (`renderer/`) は **Vite + vite-plugin-singlefile** で JS/CSS を全部 1 枚の
-  `index.html` にインライン化する。WKWebView の `loadFileURL` で別ファイルの読み込みに
-  詰まらないための構成。
-- ファイル読み込みは Swift 側だけが行い、中身を Base64 で JS に渡す。
-  Quick Look のサンドボックス制約をこれで回避している。
-- `.vrm`（独自 UTI `com.vrm.vrm`）/ `.glb`（標準 UTI `org.khronos.glb`）/
-  `.fbx`（`com.autodesk.mac.fbx` ほか）/ `.vrma`（独自 UTI `com.vrm.vrma`）を
-  `QLSupportedContentTypes` に登録。
-  先頭バイトのマジックで FBX か否かを判定し、FBX は `FBXLoader`、それ以外は
-  `GLTFLoader` で読む。GLTF 側は `userData.vrm` の有無で VRM / 素の glTF を分岐。
-- メッシュを持たないもの（`.vrma` / スキン無し FBX）はボーン階層を
-  `THREE.SkeletonHelper` でスティックフィギュア表示し、アニメーションを再生する
-  （既定アバターの同梱は不要 = ライセンス・サイズの心配なし）。
-- `.gltf`（分割型）は非対応。外部 `.bin`／テクスチャがサンドボックスで読めないため。
-- FBX は埋め込みテクスチャのみ対応（外部テクスチャ参照はサンドボックスで読めない）。
-- WKWebView はローカル `file://` を読むだけでも Network プロセスを起動するため、
-  拡張機能に `com.apple.security.network.client` を付与している（無いと WebContent が
-  クラッシュして真っ白になる）。
+- The front end (`renderer/`) is built with **Vite + vite-plugin-singlefile**, inlining all
+  JS/CSS into a single `index.html`. This avoids WKWebView's `loadFileURL` headaches with
+  loading separate asset files.
+- Only the Swift side reads files; it hands the contents to JS as Base64. This works around
+  the Quick Look sandbox restrictions.
+- `.vrm` (custom UTI `com.vrm.vrm`) / `.glb` (standard UTI `org.khronos.glb`) /
+  `.fbx` (`com.autodesk.mac.fbx` and friends) / `.vrma` (custom UTI `com.vrm.vrma`)
+  are registered in `QLSupportedContentTypes`.
+  The leading magic bytes decide FBX vs. glTF: FBX goes through `FBXLoader`, everything else
+  through `GLTFLoader`. On the glTF side, the presence of `userData.vrm` splits VRM from
+  plain glTF.
+- Files with no mesh (`.vrma`, skin-less FBX) are visualized as a stick figure via
+  `THREE.SkeletonHelper`, and the animation plays. No default avatar is bundled — so there
+  are no licensing or bundle-size concerns.
+- `.gltf` (multi-file) is unsupported: the external `.bin` / textures can't be read inside
+  the sandbox.
+- FBX supports embedded textures only (external texture references can't be read in the sandbox).
+- WKWebView spins up a Network process even just to read a local `file://`, so the extension
+  is granted `com.apple.security.network.client` (without it the WebContent process crashes
+  and the preview stays blank).
 
 ---
 
-## ディレクトリ構成
+## Layout
 
 ```
 .
-├── renderer/                      # フロントエンド (Vite + Three.js + three-vrm)
-│   ├── src/main.ts                # レンダラー本体
+├── renderer/                      # front end (Vite + Three.js + three-vrm)
+│   ├── src/main.ts                # the renderer
 │   ├── index.html
-│   └── vite.config.ts             # singlefile 設定
+│   └── vite.config.ts             # singlefile config
 ├── QuickLook3D/
-│   ├── App/                       # ホストアプリ（最小限）
+│   ├── App/                       # host app (minimal)
 │   │   ├── QuickLook3DApp.swift
 │   │   ├── Info.plist
 │   │   └── QuickLook3D.entitlements
-│   └── Extension/                 # Quick Look 拡張機能（本体）
+│   └── Extension/                 # the Quick Look extension itself
 │       ├── PreviewViewController.swift
-│       ├── Info.plist             # UTI / 拡張子の登録
+│       ├── Info.plist             # UTI / file-extension registration
 │       ├── QuickLook3DExtension.entitlements
-│       └── Resources/renderer/    # ← renderer/dist がコピーされる（生成物）
-├── project.yml                    # XcodeGen 設定（.xcodeproj を生成）
-├── scripts/build.sh               # 一括ビルド
-├── scripts/notarize.sh            # 公証 → .dmg 作成
-└── .github/workflows/release.yml  # タグ push で署名・公証・リリース
+│       └── Resources/renderer/    # ← renderer/dist is copied here (generated)
+├── project.yml                    # XcodeGen config (generates the .xcodeproj)
+├── scripts/build.sh               # one-shot build
+├── scripts/notarize.sh            # notarize → build the .dmg
+└── .github/workflows/release.yml  # tag push → sign, notarize, release
 ```
 
 ---
 
-## 必要なもの
+## Requirements
 
-| ツール | 用途 | インストール |
+| Tool | Used for | Install |
 |---|---|---|
-| **フル Xcode** | App Extension のビルド（Command Line Tools だけでは不可） | App Store |
-| Node.js 18+ | renderer のビルド | `brew install node` |
-| XcodeGen | `.xcodeproj` の生成 | `brew install xcodegen` |
+| **Full Xcode** | Building the App Extension (Command Line Tools alone won't do) | App Store |
+| Node.js 18+ | Building the renderer | `brew install node` |
+| XcodeGen | Generating the `.xcodeproj` | `brew install xcodegen` |
 
-> `.xcodeproj` は Git 管理せず `project.yml` から生成する方針。手作業で Xcode の
-> GUI からプロジェクトを作りたい場合は後述の「手動セットアップ」を参照。
+> The `.xcodeproj` is not tracked in Git; it is generated from `project.yml`. To build the
+> project by hand from the Xcode GUI instead, see "Manual setup" below.
 
 ---
 
-## ビルド（ローカル）
+## Build (local)
 
 ```bash
-# renderer ビルド → Resources へコピー → .xcodeproj 生成 → ビルドまで一括
+# build renderer → copy to Resources → generate .xcodeproj → build, all in one
 ./scripts/build.sh
 ```
 
-完了後の手順:
+Then:
 
-1. 生成された `build/Build/Products/Release/QuickLook3D.app` を `/Applications` に置く
-2. **一度アプリを起動する**（これで拡張機能が macOS に登録される）
-3. システム設定 → 一般 → ログイン項目と機能拡張 → **機能拡張（Quick Look）** で有効化
-4. Quick Look を再読み込み: `qlmanage -r && qlmanage -r cache`
-5. 動作確認: `qlmanage -p /path/to/model.vrm`（`.vrma` / `.glb` / `.fbx` も可）
+1. Move the produced `build/Build/Products/Release/QuickLook3D.app` to `/Applications`
+2. **Launch the app once** (registers the extension with macOS)
+3. System Settings → General → Login Items & Extensions → **Extensions (Quick Look)** → enable
+4. Reload Quick Look: `qlmanage -r && qlmanage -r cache`
+5. Test: `qlmanage -p /path/to/model.vrm` (`.vrma` / `.glb` / `.fbx` work too)
 
-> ローカルビルドは ad-hoc 署名（`-`）。署名なし（`CODE_SIGNING_ALLOWED=NO`）だと
-> 拡張機能が `pluginkit` に登録されないので注意。
+> Local builds use ad-hoc signing (`-`). Building unsigned (`CODE_SIGNING_ALLOWED=NO`) means
+> the extension won't be registered by `pluginkit`.
 
 ---
 
-## 開発
+## Development
 
-### フロントだけブラウザで確認する
+### Render in the browser (front end only)
 
-ネイティブをビルドしなくても、レンダラー部分はブラウザ単体で動作確認できる。
+You can iterate on the renderer without building the native side:
 
 ```bash
 cd renderer
@@ -111,123 +115,122 @@ npm install
 npm run dev
 ```
 
-開いたページに **`.vrm` / `.vrma` / `.glb` / `.fbx` をドラッグ&ドロップ**すると表示される。
-`?url=...` クエリでリモートのモデルを直接読み込むことも可能。
+**Drag and drop a `.vrm` / `.vrma` / `.glb` / `.fbx`** onto the page to view it.
+A `?url=...` query also loads a remote model directly.
 
-### ネイティブを Xcode で開いて開発する
+### Develop the native side in Xcode
 
 ```bash
-./scripts/build.sh        # 初回: renderer ビルド → Resources へコピー → .xcodeproj 生成
+./scripts/build.sh        # first run: build renderer → copy to Resources → generate .xcodeproj
 open QuickLook3D.xcodeproj
 ```
 
-> `xcodegen generate` 時点で `QuickLook3D/Extension/Resources/renderer/` が
-> 存在している必要がある（フォルダ参照のため）。`build.sh` がコピーまで済ませる。
+> `QuickLook3D/Extension/Resources/renderer/` must exist at `xcodegen generate` time (it's a
+> folder reference). `build.sh` does the copy for you.
 
-Xcode で `QuickLook3D` スキームを Run すると、ビルド時に renderer が自動で
-作り直されて拡張機能に同梱される（`project.yml` の preBuildScript）。
+Running the `QuickLook3D` scheme in Xcode rebuilds the renderer and bundles it into the
+extension automatically (via the `project.yml` preBuildScript).
 
 ---
 
-## トラブルシュート
+## Troubleshooting
 
-- **プレビューが真っ白 / 何も出ない**
-  - まずログを見る（拡張機能の console は os_log に転送している）:
+- **Preview is blank / nothing shows**
+  - Check the logs first (the extension forwards its console to os_log):
     ```bash
     log stream --predicate 'subsystem == "com.sawazen.QuickLook3D"'
     ```
-    別ターミナルで `qlmanage -p /path/to/x.vrm` を実行。
-    `prepare` → `didFinish` → `... loaded & added to scene` まで出れば描画成功。
-  - `didFinish` が出ず WebContent が crash する場合は、拡張機能の entitlements に
-    `com.apple.security.network.client` があるか確認（WKWebView の必須権限）。
-  - renderer が同梱されているか確認:
+    In another terminal run `qlmanage -p /path/to/x.vrm`.
+    Seeing `prepare` → `didFinish` → `... loaded & added to scene` means rendering succeeded.
+  - If `didFinish` never appears and the WebContent process crashes, confirm the extension
+    entitlements include `com.apple.security.network.client` (required by WKWebView).
+  - Confirm the renderer is bundled:
     `build/.../QuickLook3DExtension.appex/Contents/Resources/renderer/index.html`
-- **拡張機能が一覧に出ない**
-  - アプリを一度起動したか / `/Applications` に置いたか確認
-  - `qlmanage -r && qlmanage -r cache` でキャッシュをクリア
-  - `pluginkit -m | grep -i quicklook3d` で登録状況を確認
-- **モデルが横倒し・裏向き**
-  - VRM 0.x の座標系。`VRMUtils.rotateVRM0()` を呼んでいる（対応済み）
+- **Extension doesn't appear in the list**
+  - Did you launch the app once / put it in `/Applications`?
+  - Clear the cache: `qlmanage -r && qlmanage -r cache`
+  - Check registration: `pluginkit -m | grep -i quicklook3d`
+- **Model is sideways / facing away**
+  - VRM 0.x coordinate system. `VRMUtils.rotateVRM0()` handles it (already applied).
 
 ---
 
-## 実装メモ
+## Implementation notes
 
-- **サンドボックス**: 拡張機能はサンドボックス下で動く。ファイルアクセスは
-  `preparePreviewOfFile(at:)` に渡された URL のみ許可される。本実装は Swift 側で
-  読み込んで Base64 で JS に渡すことで回避。
-- **VRM バージョン**: `@pixiv/three-vrm` は VRM 0.x / 1.0 両対応。0.x は
-  `VRMUtils.rotateVRM0()` で座標系を補正する。
-- **署名**: 自分の Mac で使うだけなら ad-hoc 署名（`CODE_SIGN_IDENTITY="-"`）で十分。
-  他人に配布する場合は下記の「配布」を参照。
+- **Sandbox**: the extension runs sandboxed; file access is granted only for the URL passed to
+  `preparePreviewOfFile(at:)`. This implementation reads the file on the Swift side and passes
+  it to JS as Base64 to work around that.
+- **VRM versions**: `@pixiv/three-vrm` supports both VRM 0.x and 1.0. 0.x is corrected with
+  `VRMUtils.rotateVRM0()`.
+- **Signing**: ad-hoc signing (`CODE_SIGN_IDENTITY="-"`) is enough for your own Mac. For
+  distribution to others, see below.
 
 ---
 
-## 配布（署名・公証）
+## Distribution (signing & notarization)
 
-他人の Mac で素直に動かすには **Apple Developer Program**（年 ¥12,980 / US$99）に加入し、
-**Developer ID 署名 + 公証（Notarization）** が必要。未署名 / ad-hoc 署名だと Gatekeeper に
-弾かれ、quarantine 付きだとサンドボックスの拡張機能が読み込まれない。
+To run cleanly on other people's Macs you need an **Apple Developer Program** membership
+(US$99 / ¥12,980 a year) plus **Developer ID signing + notarization**. Unsigned / ad-hoc
+builds are blocked by Gatekeeper, and a quarantined build won't load the sandboxed extension.
 
-### 自動（GitHub Actions）
+### Automated (GitHub Actions)
 
-`v*` タグを push すると `.github/workflows/release.yml` が
-**署名 → 公証 → `.dmg` 作成 → Release 添付**まで自動で行う。事前にリポジトリの
-Secrets を登録しておくこと:
+Pushing a `v*` tag runs `.github/workflows/release.yml`, which **signs → notarizes → builds
+the `.dmg` → attaches it to the Release**. Register these repository Secrets first:
 
-| Secret | 内容 |
+| Secret | Contents |
 |---|---|
-| `MACOS_CERTIFICATE` | Developer ID Application 証明書(.p12)を base64 化（`base64 -i cert.p12 \| pbcopy`） |
-| `MACOS_CERTIFICATE_PWD` | 上記 .p12 のパスワード |
-| `KEYCHAIN_PASSWORD` | 一時キーチェーン用の任意のパスワード |
-| `APPLE_TEAM_ID` | Team ID（10文字） |
-| `NOTARY_APPLE_ID` | 公証用 Apple ID（メールアドレス） |
-| `NOTARY_PASSWORD` | App 用パスワード（appleid.apple.com で発行） |
+| `MACOS_CERTIFICATE` | Developer ID Application cert (.p12), base64-encoded (`base64 -i cert.p12 \| pbcopy`) |
+| `MACOS_CERTIFICATE_PWD` | password for that .p12 |
+| `KEYCHAIN_PASSWORD` | any password for the temporary keychain |
+| `APPLE_TEAM_ID` | Team ID (10 chars) |
+| `NOTARY_APPLE_ID` | Apple ID (email) used for notarization |
+| `NOTARY_PASSWORD` | app-specific password (created at appleid.apple.com) |
 
 ```bash
-git tag v1.0.0 && git push origin v1.0.0   # → Release に署名済み .dmg が付く
+git tag v1.0.0 && git push origin v1.0.0   # → a signed .dmg is attached to the Release
 ```
 
-> `gh secret set` でリポジトリ Secret を登録する場合は、必ず `--repo sawa-zen/3d-quick-look-plugin`
-> を付ける（カレントの別リポジトリに入らないように）。
+> When setting these with `gh secret set`, always pass `--repo sawa-zen/3d-quick-look-plugin`
+> so they don't land on whatever repo is in the current directory.
 
-### 手動
+### Manual
 
 ```bash
-# 1) Developer ID 署名でビルド
+# 1) build with Developer ID signing
 SIGN_IDENTITY="Developer ID Application" DEVELOPMENT_TEAM=XXXXXXXXXX ./scripts/build.sh
-# 2) 公証して .dmg を作成（staple まで）
+# 2) notarize and build the .dmg (through staple)
 APPLE_TEAM_ID=XXXXXXXXXX NOTARY_APPLE_ID=you@example.com NOTARY_PASSWORD=app-specific-pw \
   ./scripts/notarize.sh
 ```
 
-> 公証認証は App 用パスワードの代わりに App Store Connect API キー
-> （`--key` / `--key-id` / `--issuer`）も使える。
+> Instead of an app-specific password you can authenticate notarization with an App Store
+> Connect API key (`--key` / `--key-id` / `--issuer`).
 
-### ハマりどころ（解決済み）
+### Gotchas (already solved)
 
-- `xcodebuild build` は `com.apple.security.get-task-allow` を自動注入し公証で弾かれる
-  → `build.sh` は署名時に `CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO` を付けて除去している。
-- 公証には secure timestamp が必須 → 署名時に `--timestamp`、Hardened Runtime は
-  `project.yml` で有効化。
-- CI は XcodeGen が生成する新しい `.xcodeproj` 形式を読める Xcode が必要
-  → ランナーは `macos-15` + `latest-stable` Xcode。
-
----
-
-## 手動セットアップ（XcodeGen を使わない場合）
-
-1. Xcode で **macOS App** を新規作成（Product Name: `QuickLook3D`）
-2. **File > New > Target** から **Quick Look Preview Extension** を追加
-3. 本リポジトリの `QuickLook3D/Extension/PreviewViewController.swift` と
-   `Info.plist`（`QLSupportedContentTypes` / `UTImportedTypeDeclarations`）の内容を反映
-4. `renderer/dist` を拡張機能ターゲットに **フォルダ参照（青フォルダ）** で `renderer` という名前で追加
-   （グループ参照だとサブディレクトリが失われて `subdirectory: "renderer"` で見つからなくなる）
+- `xcodebuild build` auto-injects `com.apple.security.get-task-allow`, which notarization
+  rejects → `build.sh` passes `CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO` when signing to strip it.
+- Notarization requires a secure timestamp → `--timestamp` at signing; Hardened Runtime is
+  enabled in `project.yml`.
+- CI needs an Xcode new enough to read the `.xcodeproj` format XcodeGen emits → the runner is
+  `macos-15` with `latest-stable` Xcode.
 
 ---
 
-## 参考
+## Manual setup (without XcodeGen)
 
-- [magicien/VRMQuickLook](https://github.com/magicien/VRMQuickLook) — SceneKit 実装（VRM 0.x）
-- [magicien/GLTFQuickLook](https://github.com/magicien/GLTFQuickLook) — Quick Look Extension の構成参考
+1. Create a new **macOS App** in Xcode (Product Name: `QuickLook3D`)
+2. Add a **Quick Look Preview Extension** target via **File > New > Target**
+3. Reflect the contents of this repo's `QuickLook3D/Extension/PreviewViewController.swift` and
+   `Info.plist` (`QLSupportedContentTypes` / `UTImportedTypeDeclarations`)
+4. Add `renderer/dist` to the extension target as a **folder reference (blue folder)** named
+   `renderer` (a group reference loses the subdirectory, so `subdirectory: "renderer"` fails)
+
+---
+
+## References
+
+- [magicien/VRMQuickLook](https://github.com/magicien/VRMQuickLook) — SceneKit implementation (VRM 0.x)
+- [magicien/GLTFQuickLook](https://github.com/magicien/GLTFQuickLook) — reference for the Quick Look extension structure
 - [@pixiv/three-vrm](https://github.com/pixiv/three-vrm)
