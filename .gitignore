@@ -1,0 +1,20 @@
+# --- renderer (Vite / Node) ---
+renderer/node_modules/
+renderer/dist/
+
+# 拡張機能に同梱する生成物（renderer/dist からコピーされる）
+VRMQuickLook/Extension/Resources/renderer/
+
+# Info.plist は project.yml の info.properties から XcodeGen が生成する
+VRMQuickLook/App/Info.plist
+VRMQuickLook/Extension/Info.plist
+
+# --- Xcode ---
+VRMQuickLook.xcodeproj/
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+
+# --- macOS ---
+.DS_Store

@@ -1,0 +1,150 @@
+name: VRMQuickLook
+options:
+  bundleIdPrefix: com.vrm
+  deploymentTarget:
+    macOS: "12.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.0"
+    # 自分の Mac で使うだけなら署名不要（Sign to Run Locally）。
+    # 配布する場合は CODE_SIGN_IDENTITY / DEVELOPMENT_TEAM を設定すること。
+    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGN_STYLE: Manual
+
+targets:
+  # ---------------------------------------------------------------------
+  # ホストアプリ（拡張機能を同梱して配布するための器）
+  # ---------------------------------------------------------------------
+  VRMQuickLook:
+    type: application
+    platform: macOS
+    sources:
+      - VRMQuickLook/App
+    info:
+      path: VRMQuickLook/App/Info.plist
+      # ※ Info.plist は XcodeGen が下記 properties から生成する（手書き不可）
+      properties:
+        NSPrincipalClass: NSApplication
+        LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        # .vrm / .vrma / .fbx を OS に認識させる UTI 宣言（ホストアプリ側にも置く）
+        # .vrma は標準 UTI が無く放置すると動的 UTI になるため、自分で宣言する。
+        UTImportedTypeDeclarations:
+          - UTTypeIdentifier: com.vrm.vrm
+            UTTypeDescription: VRM 3D Avatar
+            UTTypeConformsTo:
+              - public.data
+            UTTypeTagSpecification:
+              public.filename-extension:
+                - vrm
+          - UTTypeIdentifier: com.vrm.vrma
+            UTTypeDescription: VRM Animation
+            UTTypeConformsTo:
+              - public.data
+            UTTypeTagSpecification:
+              public.filename-extension:
+                - vrma
+          - UTTypeIdentifier: com.autodesk.fbx
+            UTTypeDescription: FBX 3D Model
+            UTTypeConformsTo:
+              - public.data
+              - public.3d-content
+            UTTypeTagSpecification:
+              public.filename-extension:
+                - fbx
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.vrm.VRMQuickLook
+        CODE_SIGN_ENTITLEMENTS: VRMQuickLook/App/VRMQuickLook.entitlements
+        ENABLE_HARDENED_RUNTIME: YES
+    dependencies:
+      - target: VRMQuickLookExtension
+        embed: true
+
+  # ---------------------------------------------------------------------
+  # Quick Look プレビュー拡張機能（本体）
+  # ---------------------------------------------------------------------
+  VRMQuickLookExtension:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: VRMQuickLook/Extension
+        excludes:
+          - Resources
+          - Info.plist
+      # Vite でビルドしたフロントを「フォルダ参照（青フォルダ）」として同梱する。
+      # こうすることでバンドル内に Resources/renderer/index.html がそのまま残り、
+      # Bundle.main.url(... subdirectory: "renderer") で参照できる。
+      - path: VRMQuickLook/Extension/Resources/renderer
+        type: folder
+    info:
+      path: VRMQuickLook/Extension/Info.plist
+      # ※ Info.plist は XcodeGen が下記 properties から生成する（手書き不可）
+      properties:
+        CFBundleDisplayName: VRM Quick Look
+        # Quick Look Extension としての宣言
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.quicklook.preview
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).PreviewViewController
+          NSExtensionAttributes:
+            # このプラグインがプレビューできる UTI
+            #   com.vrm.vrm        … 下で宣言する VRM 用の独自 UTI
+            #   org.khronos.glb    … macOS 標準の GLB 用 UTI（宣言不要）
+            #   com.autodesk.*.fbx … FBX 用 UTI（環境差を吸収するため両方を登録）
+            QLSupportedContentTypes:
+              - com.vrm.vrm
+              - com.vrm.vrma
+              - org.khronos.glb
+              - com.autodesk.mac.fbx
+              - com.autodesk.fbx
+            QLSupportsSearchableItems: false
+        # .vrm / .fbx 拡張子と UTI を OS に教える
+        # （.glb は macOS 標準の org.khronos.glb があるので宣言不要）
+        UTImportedTypeDeclarations:
+          - UTTypeIdentifier: com.vrm.vrm
+            UTTypeDescription: VRM 3D Avatar
+            UTTypeConformsTo:
+              - public.data
+            UTTypeTagSpecification:
+              public.filename-extension:
+                - vrm
+          - UTTypeIdentifier: com.vrm.vrma
+            UTTypeDescription: VRM Animation
+            UTTypeConformsTo:
+              - public.data
+            UTTypeTagSpecification:
+              public.filename-extension:
+                - vrma
+          - UTTypeIdentifier: com.autodesk.fbx
+            UTTypeDescription: FBX 3D Model
+            UTTypeConformsTo:
+              - public.data
+              - public.3d-content
+            UTTypeTagSpecification:
+              public.filename-extension:
+                - fbx
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.vrm.VRMQuickLook.Extension
+        CODE_SIGN_ENTITLEMENTS: VRMQuickLook/Extension/VRMQuickLookExtension.entitlements
+        ENABLE_HARDENED_RUNTIME: YES
+    # ビルドのたびに renderer を作り直して Resources/renderer にコピーする。
+    preBuildScripts:
+      - name: Build renderer (Vite)
+        script: |
+          set -e
+          cd "$SRCROOT/renderer"
+          if [ -z "$(which node)" ]; then
+            echo "warning: node が見つかりません。renderer のビルドをスキップします"
+            exit 0
+          fi
+          [ -d node_modules ] || npm install
+          npm run build
+          DEST="$SRCROOT/VRMQuickLook/Extension/Resources/renderer"
+          mkdir -p "$DEST"
+          rm -rf "$DEST"/*
+          cp -R dist/* "$DEST/"
+        basedOnDependencyAnalysis: false
