@@ -186,3 +186,14 @@ Xcode で `QuickLook3D` スキームを Run すると、ビルド時に renderer
 - [magicien/VRMQuickLook](https://github.com/magicien/VRMQuickLook) — SceneKit 実装（VRM 0.x）
 - [magicien/GLTFQuickLook](https://github.com/magicien/GLTFQuickLook) — Quick Look Extension の構成参考
 - [@pixiv/three-vrm](https://github.com/pixiv/three-vrm)
+
+---
+
+## ライセンス
+
+本プロジェクトのコードは [MIT License](./LICENSE)（Copyright © 2026 sawa-zen）。
+
+配布物に同梱するサードパーティ（three.js / @pixiv/three-vrm / fflate）も
+すべて MIT License。詳細は [THIRD_PARTY_LICENSES.md](./THIRD_PARTY_LICENSES.md) を参照。
+アバター等のモデルデータは同梱していない（VRMA・スキン無し FBX はスケルトン表示）ため、
+モデルのライセンスを気にせず配布できる。
