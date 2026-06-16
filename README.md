@@ -7,13 +7,7 @@ A macOS Quick Look plugin that previews **`.vrm` / `.vrma` / `.glb` / `.fbx`** f
 Select a file in Finder and press Space to spin the model around. Animations play
 automatically.
 
----
-
-## Demo
-
 ![Quick Look 3D demo](docs/demo.gif)
-
----
 
 ## Install
 
@@ -26,8 +20,6 @@ automatically.
    and turn on **Quick Look 3D**
 
 > The released build is notarized by Apple, so Gatekeeper won't warn you.
-
----
 
 ## Usage
 
@@ -43,8 +35,6 @@ Select a supported file in Finder and press **Space** (or right-click → Quick 
 - Drag to rotate, scroll to zoom
 - Files with no mesh/skin (a skin-less `.fbx`, or `.vrma`) are shown as a skeleton
 
----
-
 ## Troubleshooting
 
 - Make sure install steps 3–4 (**launch once** and **enable the extension**) are done
@@ -55,15 +45,11 @@ Select a supported file in Finder and press **Space** (or right-click → Quick 
 - `.gltf` (the multi-file form with external `.bin` / textures) is not supported.
   Use a single-file `.glb` instead.
 
----
-
 ## License
 
 The project code is [MIT](./LICENSE). The bundled third parties (three.js /
 @pixiv/three-vrm / fflate) are also MIT — see
 [THIRD_PARTY_LICENSES.md](./THIRD_PARTY_LICENSES.md). No avatar or model data is bundled.
-
----
 
 ## For developers
 
