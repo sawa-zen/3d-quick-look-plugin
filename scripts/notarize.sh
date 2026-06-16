@@ -28,7 +28,7 @@ codesign --verify --deep --strict --verbose=2 "$APP"
 
 echo "==> Create the .dmg: $DMG"
 rm -f "$DMG"
-hdiutil create -volname "3D Quick Look" -srcfolder "$APP" -ov -format UDZO "$DMG"
+hdiutil create -volname "Quick Look 3D" -srcfolder "$APP" -ov -format UDZO "$DMG"
 
 echo "==> Submit for notarization (wait until done)"
 SUBMIT_OUT=$(xcrun notarytool submit "$DMG" \

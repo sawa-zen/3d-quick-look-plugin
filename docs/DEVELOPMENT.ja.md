@@ -2,7 +2,7 @@
 
 [English](./DEVELOPMENT.md) | **日本語**
 
-3D Quick Look Plugin のアーキテクチャ・ビルド・配布手順。利用者向けの概要は
+Quick Look 3D Plugin のアーキテクチャ・ビルド・配布手順。利用者向けの概要は
 [../README.ja.md](../README.ja.md) を参照。
 
 技術スタック: **Swift（Quick Look App Extension）+ WKWebView + Three.js +
@@ -190,7 +190,7 @@ Secrets を登録しておくこと:
 git tag v1.0.0 && git push origin v1.0.0   # → Release に署名済み .dmg が付く
 ```
 
-> `gh secret set` でリポジトリ Secret を登録する場合は、必ず `--repo sawa-zen/3d-quick-look-plugin`
+> `gh secret set` でリポジトリ Secret を登録する場合は、必ず `--repo sawa-zen/quick-look-3d`
 > を付ける（カレントの別リポジトリに入らないように）。
 
 ### 手動

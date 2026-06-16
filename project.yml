@@ -28,7 +28,7 @@ targets:
       path: QuickLook3D/App/Info.plist
       # NOTE: XcodeGen generates Info.plist from the properties below (don't hand-edit it)
       properties:
-        CFBundleDisplayName: 3D Quick Look
+        CFBundleDisplayName: Quick Look 3D
         NSPrincipalClass: NSApplication
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
         # UTI declarations so the OS recognizes .vrm / .vrma / .fbx (also declared on the host app).
@@ -85,7 +85,7 @@ targets:
       path: QuickLook3D/Extension/Info.plist
       # NOTE: XcodeGen generates Info.plist from the properties below (don't hand-edit it)
       properties:
-        CFBundleDisplayName: 3D Quick Look
+        CFBundleDisplayName: Quick Look 3D
         # Declares this as a Quick Look extension
         NSExtension:
           NSExtensionPointIdentifier: com.apple.quicklook.preview

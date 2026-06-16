@@ -1,4 +1,4 @@
-# 3D Quick Look Plugin
+# Quick Look 3D Plugin
 
 **English** | [日本語](./README.ja.md)
 
@@ -12,12 +12,12 @@ automatically.
 ## Install
 
 1. Download `QuickLook3D.dmg` from the
-   [latest release](https://github.com/sawa-zen/3d-quick-look-plugin/releases/latest) and open it
+   [latest release](https://github.com/sawa-zen/quick-look-3d/releases/latest) and open it
 2. Drag **QuickLook3D.app** into your Applications folder
 3. **Launch the app once** — this registers the Quick Look extension with macOS
    (you can close the window afterwards)
 4. Open **System Settings → General → Login Items & Extensions → Extensions (Quick Look)**
-   and turn on **3D Quick Look**
+   and turn on **Quick Look 3D**
 
 > The released build is notarized by Apple, so Gatekeeper won't warn you.
 

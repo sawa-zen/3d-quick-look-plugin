@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One-shot build script for the 3D Quick Look plugin.
+# One-shot build script for the Quick Look 3D plugin.
 #   Requires: full Xcode / xcodegen / node installed
 #   Usage: ./scripts/build.sh
 set -euo pipefail

@@ -2,7 +2,7 @@
 
 **English** | [日本語](./DEVELOPMENT.ja.md)
 
-Architecture, build, and distribution notes for 3D Quick Look Plugin. For the user-facing
+Architecture, build, and distribution notes for Quick Look 3D Plugin. For the user-facing
 overview see [../README.md](../README.md).
 
 Stack: **Swift (Quick Look App Extension) + WKWebView + Three.js +
@@ -191,7 +191,7 @@ the `.dmg` → attaches it to the Release**. Register these repository Secrets f
 git tag v1.0.0 && git push origin v1.0.0   # → a signed .dmg is attached to the Release
 ```
 
-> When setting these with `gh secret set`, always pass `--repo sawa-zen/3d-quick-look-plugin`
+> When setting these with `gh secret set`, always pass `--repo sawa-zen/quick-look-3d`
 > so they don't land on whatever repo is in the current directory.
 
 ### Manual

@@ -6,7 +6,7 @@ import SwiftUI
 @main
 struct QuickLook3DApp: App {
     var body: some Scene {
-        WindowGroup("3D Quick Look") {
+        WindowGroup("Quick Look 3D") {
             ContentView()
         }
     }
@@ -19,7 +19,7 @@ struct ContentView: View {
                 .font(.system(size: 56))
                 .foregroundStyle(.tint)
 
-            Text("3D Quick Look")
+            Text("Quick Look 3D")
                 .font(.title.bold())
 
             Text("Launch this app once, then select a\n.vrm / .vrma / .glb / .fbx in Finder and press Space\nto preview it in 3D.")
