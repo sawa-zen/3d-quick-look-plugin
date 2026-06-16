@@ -9,6 +9,14 @@ automatically.
 
 ---
 
+## Demo
+
+<video src="https://github.com/sawa-zen/quick-look-3d/raw/main/docs/demo.mp4" controls width="100%"></video>
+
+> If the player above doesn't load, [watch the demo (mp4)](https://github.com/sawa-zen/quick-look-3d/raw/main/docs/demo.mp4).
+
+---
+
 ## Install
 
 1. Download `QuickLook3D.dmg` from the
