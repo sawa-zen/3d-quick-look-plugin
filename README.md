@@ -1,6 +1,6 @@
 # Quick Look 3D Plugin
 
-**English** | [日本語](./README.ja.md)
+**English** | [日本語](./README.ja.md) | [한국어](./README.ko.md)
 
 A macOS Quick Look plugin that previews **`.vrm` / `.vrma` / `.glb` / `.fbx`** files in 3D.
 
