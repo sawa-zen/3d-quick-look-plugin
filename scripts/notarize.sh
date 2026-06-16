@@ -28,7 +28,13 @@ codesign --verify --deep --strict --verbose=2 "$APP"
 
 echo "==> Create the .dmg: $DMG"
 rm -f "$DMG"
-hdiutil create -volname "Quick Look 3D" -srcfolder "$APP" -ov -format UDZO "$DMG"
+# Stage the app next to an "Applications" alias so the mounted dmg shows the
+# familiar "drag the app into Applications" layout. ditto preserves the signature.
+STAGE="$(mktemp -d)"
+ditto "$APP" "$STAGE/$(basename "$APP")"
+ln -s /Applications "$STAGE/Applications"
+hdiutil create -volname "Quick Look 3D" -srcfolder "$STAGE" -ov -format UDZO "$DMG"
+rm -rf "$STAGE"
 
 echo "==> Submit for notarization (wait until done)"
 SUBMIT_OUT=$(xcrun notarytool submit "$DMG" \
